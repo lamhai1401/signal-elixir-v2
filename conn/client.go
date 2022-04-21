@@ -94,7 +94,9 @@ func (c *Connection) Start(sub *Subscriber) error {
 
 	for range ticker.C {
 		if limit == 100 {
-			c.Info(fmt.Sprintf("Try to connect elixir %d times", limit))
+			str := fmt.Sprintf("Try to connect elixir %d times", limit)
+			c.Error(str)
+			return fmt.Errorf(str)
 		}
 
 		err := c.connect(sub.Topic, c.GetParams())
@@ -103,7 +105,7 @@ func (c *Connection) Start(sub *Subscriber) error {
 			limit++
 			continue
 		}
-		limit++
+		break
 	}
 	return nil
 }
