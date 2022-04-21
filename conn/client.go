@@ -80,6 +80,7 @@ func NewConnection(id, nodeID, token, url string, params map[string]string) *Con
 		subscribers:     make(map[string]*Subscriber),
 		isClosed:        false,
 		ctx:             ctx,
+		params:          params,
 		cancel:          cancel,
 	}
 
