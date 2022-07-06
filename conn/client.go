@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lamhai1401/channel/client"
+	"github.com/lamhai1401/channel-v2/client"
 	"github.com/lamhai1401/gologs/logs"
 	"github.com/mitchellh/mapstructure"
 )
@@ -54,7 +54,7 @@ type Connection struct {
 	token             string                 // for auth
 	id                string                 // for log with id
 	url               string                 // connect url
-	conn              *client.Connection     // elixir connection
+	conn              client.Connection      // elixir connection
 	sendMsgChann      chan *MsgSender        // to send msg chann
 	params            map[string]string      // connection params
 	lastResponse      map[string]time.Time   // save to last msg response to check heng request for each topic
@@ -202,8 +202,8 @@ func (c *Connection) subcribeConnectionChannel(id string) error {
 
 // Subscribe linter
 func (c *Connection) Subscribe(sub *Subscriber) error {
-	conn := c.getConn()
-	if conn == nil {
+	elixer := c.getConn()
+	if elixer == nil {
 		return fmt.Errorf("current signal connection is nil")
 	}
 
@@ -263,7 +263,7 @@ func (c *Connection) Subscribe(sub *Subscriber) error {
 				// unsub old topic
 				c.UnSubscribe(sub.Topic)
 
-				conn = c.getConn()
+				elixer = c.getConn()
 				if conn == nil {
 					logs.Warn("current connection is nil")
 					count++
@@ -271,7 +271,7 @@ func (c *Connection) Subscribe(sub *Subscriber) error {
 				}
 
 				// join new topic
-				ch, err = conn.Chan(sub.Topic)
+				ch, err = elixer.Chan(sub.Topic)
 				if err != nil {
 					logs.Error(sub.Topic, " subscribe error: ", err.Error())
 					count++

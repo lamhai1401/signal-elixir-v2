@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/lamhai1401/channel/client"
+	"github.com/lamhai1401/channel-v2/client"
 	"github.com/lamhai1401/gologs/logs"
 )
 
@@ -46,13 +46,13 @@ func (c *Connection) GetParams() map[string]string {
 	return c.params
 }
 
-func (c *Connection) getConn() *client.Connection {
+func (c *Connection) getConn() client.Connection {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 	return c.conn
 }
 
-func (c *Connection) setConn(conn *client.Connection) {
+func (c *Connection) setConn(conn client.Connection) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.conn = conn
