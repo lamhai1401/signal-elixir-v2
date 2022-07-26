@@ -202,10 +202,6 @@ func (c *Connection) subcribeConnectionChannel(id string) error {
 
 // Subscribe linter
 func (c *Connection) Subscribe(sub *Subscriber) error {
-	elixer := c.getConn()
-	if elixer == nil {
-		return fmt.Errorf("current signal connection is nil")
-	}
 
 	callBack := func(channel <-chan *client.Message) {
 		var open bool
@@ -235,7 +231,7 @@ func (c *Connection) Subscribe(sub *Subscriber) error {
 		var resp *client.Message
 		var err error
 		var ch *client.Chan
-		var conn *client.Connection
+		var conn client.Connection
 		var data *Result
 
 		connectionTime := 10
@@ -263,7 +259,7 @@ func (c *Connection) Subscribe(sub *Subscriber) error {
 				// unsub old topic
 				c.UnSubscribe(sub.Topic)
 
-				elixer = c.getConn()
+				conn = c.getConn()
 				if conn == nil {
 					logs.Warn("current connection is nil")
 					count++
@@ -271,7 +267,7 @@ func (c *Connection) Subscribe(sub *Subscriber) error {
 				}
 
 				// join new topic
-				ch, err = elixer.Chan(sub.Topic)
+				ch, err = conn.Chan(sub.Topic)
 				if err != nil {
 					logs.Error(sub.Topic, " subscribe error: ", err.Error())
 					count++
