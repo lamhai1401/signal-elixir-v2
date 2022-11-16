@@ -2,6 +2,7 @@ package conn
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/lamhai1401/channel-v2/client"
 	"github.com/lamhai1401/gologs/logs"
-	"github.com/mitchellh/mapstructure"
 )
 
 // ErrTimeOut linter
@@ -45,6 +45,22 @@ type Subscriber struct {
 	Topic        string // channel name
 	NeedSendping bool   // need to sendping or not
 	Chann        *client.Chan
+}
+
+func JsonParsing(source interface{}) func(dest interface{}) error {
+	return func(dest interface{}) error {
+		bytes, err := json.Marshal(source)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(bytes, &dest)
+		if err != nil {
+			return err
+		}
+		bytes = nil
+		return nil
+	}
 }
 
 // Connection linter
@@ -284,7 +300,8 @@ func (c *Connection) Subscribe(sub *Subscriber) error {
 				// check join result
 				resp = <-result.Pull()
 
-				err = mapstructure.Decode(resp.Payload, &data)
+				// err = mapstructure.Decode(resp.Payload, &data)
+				err = JsonParsing(resp.Payload)(&data)
 				if err != nil {
 					logs.Error("parsing error", err.Error())
 					count++

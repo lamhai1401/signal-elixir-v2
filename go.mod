@@ -1,11 +1,10 @@
 module github.com/lamhai1401/signal-elixir-v2
 
-go 1.17
+go 1.19
 
 require (
 	github.com/lamhai1401/channel-v2 v0.0.2
 	github.com/lamhai1401/gologs v0.0.12
-	github.com/mitchellh/mapstructure v1.4.3
 	github.com/quasilyte/go-ruleguard/dsl v0.3.21
 )
 
