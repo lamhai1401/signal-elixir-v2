@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lamhai1401/channel-v2/client"
+	"github.com/lamhai1401/channel/client"
 	"github.com/lamhai1401/gologs/logs"
 )
 
@@ -70,7 +70,7 @@ type Connection struct {
 	token             string                 // for auth
 	id                string                 // for log with id
 	url               string                 // connect url
-	conn              client.Connection      // elixir connection
+	conn              *client.Connection     // elixir connection
 	sendMsgChann      chan *MsgSender        // to send msg chann
 	params            map[string]string      // connection params
 	lastResponse      map[string]time.Time   // save to last msg response to check heng request for each topic
@@ -247,7 +247,7 @@ func (c *Connection) Subscribe(sub *Subscriber) error {
 		var resp *client.Message
 		var err error
 		var ch *client.Chan
-		var conn client.Connection
+		var conn *client.Connection
 		var data *Result
 
 		connectionTime := 10
