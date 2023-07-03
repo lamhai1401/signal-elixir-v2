@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/lamhai1401/channel v0.0.9-beta1
 	github.com/lamhai1401/gologs v0.0.12
+	github.com/lamhai1401/request v0.0.3
 	github.com/quasilyte/go-ruleguard/dsl v0.3.21
 )
 
