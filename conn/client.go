@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -47,22 +48,6 @@ type Subscriber struct {
 	Chann        *client.Chan
 }
 
-func JsonParsing(source interface{}) func(dest interface{}) error {
-	return func(dest interface{}) error {
-		bytes, err := json.Marshal(source)
-		if err != nil {
-			return err
-		}
-
-		err = json.Unmarshal(bytes, &dest)
-		if err != nil {
-			return err
-		}
-		bytes = nil
-		return nil
-	}
-}
-
 // Connection linter
 type Connection struct {
 	nodeID            string                 // nodeID to verify
@@ -99,7 +84,6 @@ func NewConnection(id, nodeID, token, url string, params map[string]string) *Con
 		params:          params,
 		cancel:          cancel,
 	}
-
 	return conn
 }
 
@@ -118,7 +102,7 @@ func (c *Connection) Start(sub *Subscriber) error {
 
 		err := c.connect(sub.Topic, c.GetParams())
 		if err != nil {
-			c.Error("elixir connecting err: ", err.Error())
+			c.Error(c.url, " elixir connecting err: ", err.Error())
 			limit++
 			continue
 		}
@@ -218,6 +202,10 @@ func (c *Connection) subcribeConnectionChannel(id string) error {
 
 // Subscribe linter
 func (c *Connection) Subscribe(sub *Subscriber) error {
+	conn := c.getConn()
+	if conn == nil {
+		return fmt.Errorf("current signal connection is nil")
+	}
 
 	callBack := func(channel <-chan *client.Message) {
 		var open bool
@@ -301,11 +289,19 @@ func (c *Connection) Subscribe(sub *Subscriber) error {
 				resp = <-result.Pull()
 
 				// err = mapstructure.Decode(resp.Payload, &data)
+				startTime := time.Now().UnixMilli()
 				err = JsonParsing(resp.Payload)(&data)
 				if err != nil {
 					logs.Error("parsing error", err.Error())
 					count++
 					continue
+				}
+				endTime := time.Now().UnixMilli()
+
+				limit := int64(getMsgLimitTime())
+
+				if (endTime - startTime) > int64(getMsgLimitTime()) {
+					logs.Warn(fmt.Sprintf("[TIMEOUT] endTime - startTime > limitTime (%v-%v > %v)", endTime, startTime, limit))
 				}
 
 				switch data.Status {
@@ -510,4 +506,30 @@ func (c *Connection) Close() {
 // Reading linter
 func (c *Connection) Reading() chan *client.Message {
 	return c.receiveMsgChann
+}
+
+func JsonParsing(source interface{}) func(dest interface{}) error {
+	return func(dest interface{}) error {
+		bytes, err := json.Marshal(source)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(bytes, &dest)
+		if err != nil {
+			return err
+		}
+		bytes = nil
+		return nil
+	}
+}
+
+func getMsgLimitTime() int {
+	if temp := os.Getenv("MSG_LIMIT_TIME"); temp != "" {
+		parser, err := strconv.Atoi(temp)
+		if err != nil {
+			return parser
+		}
+	}
+	return 100
 }
